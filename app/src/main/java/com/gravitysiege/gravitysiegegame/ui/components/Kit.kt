@@ -16,8 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
@@ -52,6 +51,7 @@ fun AssetImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
     alignment: Alignment = Alignment.Center,
+    colorFilter: ColorFilter? = null,
 ) {
     val context = LocalContext.current
     val image = remember(path) {
@@ -65,6 +65,7 @@ fun AssetImage(
             modifier = modifier,
             contentScale = contentScale,
             alignment = alignment,
+            colorFilter = colorFilter,
         )
     }
 }
@@ -78,24 +79,6 @@ fun GameTitle(modifier: Modifier = Modifier, height: Dp = 150.dp) {
             .height(height),
         ContentScale.Fit,
     )
-}
-
-@Composable
-fun CoinPill(coins: Int, modifier: Modifier = Modifier, light: Boolean = false) {
-    val bg = if (light) Color.White.copy(0.88f) else Panel
-    val stroke = if (light) Gold else Line
-    Row(
-        modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(bg)
-            .border(1.4.dp, stroke, RoundedCornerShape(24.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Filled.MonetizationOn, null, tint = Gold, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(6.dp))
-        Text(formatCoins(coins), color = Ink, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-    }
 }
 
 @Composable
@@ -122,13 +105,6 @@ fun CircleIconButton(
 fun BackButton(onClick: () -> Unit, light: Boolean = false) {
     CircleIconButton(onClick, light = light) {
         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Ink)
-    }
-}
-
-@Composable
-fun SettingsButton(onClick: () -> Unit, light: Boolean = false) {
-    CircleIconButton(onClick, light = light) {
-        Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Ink)
     }
 }
 

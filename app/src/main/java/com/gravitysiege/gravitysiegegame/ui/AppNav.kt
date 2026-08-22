@@ -10,10 +10,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.gravitysiege.gravitysiegegame.GameStore
 import com.gravitysiege.gravitysiegegame.audio.Sfx
+import com.gravitysiege.gravitysiegegame.ui.screens.DailyDropScreen
 import com.gravitysiege.gravitysiegegame.ui.screens.GameScreen
+import com.gravitysiege.gravitysiegegame.ui.screens.LeaderboardScreen
 import com.gravitysiege.gravitysiegegame.ui.screens.LoadingScreen
 import com.gravitysiege.gravitysiegegame.ui.screens.MenuScreen
 import com.gravitysiege.gravitysiegegame.ui.screens.SettingsScreen
+import com.gravitysiege.gravitysiegegame.ui.screens.SkinsScreen
 import com.gravitysiege.gravitysiegegame.ui.screens.WebDocumentScreen
 
 object Routes {
@@ -21,6 +24,9 @@ object Routes {
     const val MENU = "menu"
     const val GAME = "game"
     const val SETTINGS = "settings"
+    const val BOARD = "board"
+    const val CREWS = "crews"
+    const val DAILY = "daily"
     const val WEB = "web"
 }
 
@@ -51,6 +57,9 @@ fun AppNav(store: GameStore, sfx: Sfx, activity: Activity) {
         composable(Routes.MENU) { MenuScreen(store, sfx, open) }
         composable(Routes.GAME) { GameScreen(store, sfx, back) }
         composable(Routes.SETTINGS) { SettingsScreen(store, sfx, open, back) }
+        composable(Routes.BOARD) { LeaderboardScreen(store, back) }
+        composable(Routes.CREWS) { SkinsScreen(store, sfx, back) }
+        composable(Routes.DAILY) { DailyDropScreen(store, sfx, back) }
         composable(
             route = "${Routes.WEB}/{page}",
             arguments = listOf(navArgument("page") { type = NavType.StringType }),

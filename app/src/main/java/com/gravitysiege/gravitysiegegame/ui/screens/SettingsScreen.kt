@@ -76,7 +76,7 @@ fun SettingsScreen(store: GameStore, sfx: Sfx, open: (String) -> Unit, back: () 
             open("${Routes.WEB}/${WebPages.SUPPORT}")
         }
         Spacer(Modifier.height(24.dp))
-        Text("Virtual bank", color = Ink, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+        Text("Bank", color = Ink, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
         Spacer(Modifier.height(8.dp))
         Text(
             "Balance ${formatCoins(store.coins)} coins  ·  Best cash-out ${formatCoins(store.biggestWin)}  ·  Tallest tower ${store.tallestTower}",

@@ -192,8 +192,17 @@ class SiegeStage(private val rng: Random = Random.Default) {
             return t * t * (3 - 2 * t)
         }
 
+    /** Crew tempo: above one drags the rig out, below one whips it across. */
+    var tempo: Double = 1.0
+        set(value) {
+            field = value.coerceIn(0.4, 2.0)
+        }
+
     private val crossSeconds: Double
-        get() = max(Yard.SWEEP_FLOOR, Yard.SWEEP_SECONDS - storeys.size * Yard.SWEEP_QUICKEN)
+        get() = max(
+            Yard.SWEEP_FLOOR,
+            (Yard.SWEEP_SECONDS - storeys.size * Yard.SWEEP_QUICKEN) * tempo,
+        )
 
     private val sweepRate: Double get() = Math.PI / crossSeconds
 

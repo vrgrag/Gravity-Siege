@@ -43,6 +43,13 @@ data class WheelSeg(
 )
 
 class TowerEngine(private val rng: Random = Random.Default) {
+
+    /** Crew handicap added to the chance a house slips. */
+    var riskBias: Double = 0.0
+
+    /** Crew bonus multiplying the odds every seated house pays. */
+    var payoutBias: Double = 1.0
+
     var phase by mutableStateOf(RoundPhase.IDLE)
         private set
     var bet by mutableIntStateOf(0)
@@ -178,7 +185,8 @@ class TowerEngine(private val rng: Random = Random.Default) {
     }
 
     private fun rollDrop(guaranteed: Boolean): PendingDrop {
-        val success = guaranteed || rng.nextDouble() >= collapseChance(floors.size)
+        val threat = (collapseChance(floors.size) + riskBias).coerceIn(0.0, 0.6)
+        val success = guaranteed || rng.nextDouble() >= threat
         val kind = when {
             !success -> FloorKind.NORMAL
             guaranteed -> FloorKind.NORMAL
@@ -216,7 +224,7 @@ class TowerEngine(private val rng: Random = Random.Default) {
             roll < 0.88 -> rng.nextDouble(1.45, 1.90)
             else -> rng.nextDouble(1.90, 2.40)
         }
-        val stepped = (raw * 100.0).toInt() / 100.0
+        val stepped = (raw * payoutBias * 100.0).toInt() / 100.0
         return stepped.coerceAtLeast(min)
     }
 

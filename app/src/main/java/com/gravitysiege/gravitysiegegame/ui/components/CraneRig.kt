@@ -30,6 +30,7 @@ private const val CABLE = 0xFF23272B
 fun CraneRig(
     houseArt: String,
     modifier: Modifier = Modifier,
+    tint: Color? = null,
     swingDegrees: Float = 12f,
     cycleMillis: Int = 2700,
 ) {
@@ -120,7 +121,15 @@ fun CraneRig(
                 cap = StrokeCap.Round,
             )
         }
-        drawSprite(houseImg, house.x, house.y, houseW, houseH, Math.toDegrees(sway.toDouble()).toFloat())
+        drawSprite(
+            houseImg,
+            house.x,
+            house.y,
+            houseW,
+            houseH,
+            Math.toDegrees(sway.toDouble()).toFloat(),
+            tint = tint,
+        )
     }
 }
 

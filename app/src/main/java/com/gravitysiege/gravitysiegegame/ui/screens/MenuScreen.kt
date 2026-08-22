@@ -23,10 +23,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gravitysiege.gravitysiegegame.GameStore
 import com.gravitysiege.gravitysiegegame.audio.Sfx
+import com.gravitysiege.gravitysiegegame.game.Leaderboard
 import com.gravitysiege.gravitysiegegame.game.Yard
 import com.gravitysiege.gravitysiegegame.ui.Routes
 import com.gravitysiege.gravitysiegegame.ui.components.AssetImage
@@ -48,15 +53,16 @@ import com.gravitysiege.gravitysiegegame.ui.components.GameTitle
 import com.gravitysiege.gravitysiegegame.ui.components.HazardTape
 import com.gravitysiege.gravitysiegegame.ui.components.HazardYellow
 import com.gravitysiege.gravitysiegegame.ui.components.PlateButton
+import com.gravitysiege.gravitysiegegame.ui.components.SiteAction
 import com.gravitysiege.gravitysiegegame.ui.components.SiteDivider
 import com.gravitysiege.gravitysiegegame.ui.components.SiteHeader
 import com.gravitysiege.gravitysiegegame.ui.components.SiteStat
 import com.gravitysiege.gravitysiegegame.ui.components.SteelKey
 import com.gravitysiege.gravitysiegegame.ui.components.SteelPlate
-import com.gravitysiege.gravitysiegegame.ui.components.SteelText
 import com.gravitysiege.gravitysiegegame.ui.theme.Ink
 import com.gravitysiege.gravitysiegegame.ui.theme.SkyDeep
 import com.gravitysiege.gravitysiegegame.ui.theme.formatCoins
+import java.time.LocalDate
 
 private const val STREET_RATIO = 0.412f
 
@@ -70,6 +76,9 @@ fun MenuScreen(store: GameStore, sfx: Sfx, open: (String) -> Unit) {
         val screenW = maxWidth
         val screenH = maxHeight
         val cityH = screenW * STREET_RATIO
+        val rank = remember(store.biggestWin, store.tallestTower) {
+            Leaderboard.rankOf(LocalDate.now().toEpochDay(), store.biggestWin, store.tallestTower)
+        }
 
         AssetImage("bg_sky_asset.webp", Modifier.fillMaxSize(), ContentScale.Crop)
         DriftingSky(screenW)
@@ -102,6 +111,7 @@ fun MenuScreen(store: GameStore, sfx: Sfx, open: (String) -> Unit) {
 
             CraneRig(
                 houseArt = Yard.HOUSES[1],
+                tint = store.skin.paint,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -116,10 +126,13 @@ fun MenuScreen(store: GameStore, sfx: Sfx, open: (String) -> Unit) {
             SiteBoard(
                 bestWin = store.biggestWin,
                 tallest = store.tallestTower,
+                rank = rank,
+                dailyReady = store.dailyReady,
                 onPlay = {
                     sfx.transition()
                     open(Routes.GAME)
                 },
+                onOpen = open,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             // Only a sliver of the city stays clear under the board, so the panel
@@ -137,7 +150,10 @@ fun MenuScreen(store: GameStore, sfx: Sfx, open: (String) -> Unit) {
 private fun SiteBoard(
     bestWin: Int,
     tallest: Int,
+    rank: Int,
+    dailyReady: Boolean,
     onPlay: () -> Unit,
+    onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SteelPlate(modifier.fillMaxWidth()) {
@@ -156,7 +172,7 @@ private fun SiteBoard(
                 SiteDivider()
                 SiteStat("TALLEST", "$tallest FL")
                 SiteDivider()
-                SiteStat("PAYOUT", "VIRTUAL")
+                SiteStat("RANK", "#$rank")
             }
             Spacer(Modifier.height(12.dp))
             HazardTape(
@@ -173,14 +189,19 @@ private fun SiteBoard(
                 height = 74.dp,
                 ink = Ink,
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "VIRTUAL COINS ONLY · NO REAL MONEY",
-                color = SteelText,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.2.sp,
-            )
+            Spacer(Modifier.height(12.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                SiteAction(Icons.Filled.EmojiEvents, "BOARD") { onOpen(Routes.BOARD) }
+                SiteAction(Icons.Filled.Brush, "CREWS") { onOpen(Routes.CREWS) }
+                SiteAction(
+                    icon = Icons.Filled.CardGiftcard,
+                    label = "DAILY",
+                    badge = dailyReady,
+                ) { onOpen(Routes.DAILY) }
+            }
         }
     }
 }

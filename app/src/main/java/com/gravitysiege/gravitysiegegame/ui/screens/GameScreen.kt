@@ -71,9 +71,17 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
     val stage = remember { SiegeStage() }
     var wheelLabel by remember { mutableStateOf<String?>(null) }
     var banner by remember { mutableStateOf<String?>(null) }
+    val skin = store.skin
 
     LaunchedEffect(Unit) {
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
+    // The crew on shift decides the rig's tempo and the risk-to-reward trade.
+    LaunchedEffect(skin.id) {
+        stage.tempo = skin.tempo
+        engine.riskBias = skin.risk
+        engine.payoutBias = skin.payout
     }
 
     LaunchedEffect(Unit) {
@@ -154,7 +162,7 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
         engine.phase == RoundPhase.TRIPLE
 
     Box(Modifier.fillMaxSize()) {
-        YardCanvas(stage, Modifier.fillMaxSize())
+        YardCanvas(stage, Modifier.fillMaxSize(), tint = skin.paint)
 
         Column(Modifier.fillMaxSize()) {
             SiteHeader {
@@ -169,11 +177,21 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SteelKey(Icons.AutoMirrored.Filled.ArrowBack, "Back", size = 42.dp) {
-                            if (hanging && engine.floors.isNotEmpty()) {
-                                store.credit(engine.cashOut())
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SteelKey(Icons.AutoMirrored.Filled.ArrowBack, "Back", size = 42.dp) {
+                                if (hanging && engine.floors.isNotEmpty()) {
+                                    store.credit(engine.cashOut())
+                                }
+                                back()
                             }
-                            back()
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                skin.title,
+                                color = skin.accent,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.2.sp,
+                            )
                         }
                         FundsReadout(store.coins)
                     }

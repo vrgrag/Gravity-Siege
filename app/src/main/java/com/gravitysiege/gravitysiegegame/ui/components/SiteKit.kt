@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +29,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gravitysiege.gravitysiegegame.ui.theme.formatCoins
@@ -94,19 +93,82 @@ fun SteelPlate(
     }
 }
 
-/** Round steel key for icon actions. */
+/** Round steel key for icon actions. A [badge] pins an alert dot to its corner. */
 @Composable
-fun SteelKey(icon: ImageVector, label: String, size: Dp = 46.dp, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(Brush.verticalGradient(listOf(SteelHigh, SteelLow)))
-            .border(2.dp, SteelEdge, CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = label, tint = HazardYellow, modifier = Modifier.size(size * 0.5f))
+fun SteelKey(
+    icon: ImageVector,
+    label: String,
+    size: Dp = 46.dp,
+    badge: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(Brush.verticalGradient(listOf(SteelHigh, SteelLow)))
+                .border(2.dp, SteelEdge, CircleShape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = label,
+                tint = HazardYellow,
+                modifier = Modifier.size(size * 0.5f),
+            )
+        }
+        if (badge) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .size(size * 0.26f)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE23B3B))
+                    .border(1.5.dp, SiteInk, CircleShape),
+            )
+        }
+    }
+}
+
+/** A steel key with its purpose stencilled underneath. */
+@Composable
+fun SiteAction(
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    badge: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        SteelKey(icon, label, size = 48.dp, badge = badge, onClick = onClick)
+        Spacer(Modifier.height(5.dp))
+        Text(
+            label,
+            color = SteelText,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+        )
+    }
+}
+
+/** The game's currency: a plain struck coin. */
+@Composable
+fun Coin(modifier: Modifier = Modifier, size: Dp = 22.dp) {
+    Canvas(modifier.size(size)) {
+        val r = this.size.minDimension / 2f
+        val middle = Offset(this.size.width / 2f, this.size.height / 2f)
+        drawCircle(Color(0xFF8A5E05), r, middle)
+        drawCircle(Color(0xFFF5C012), r * 0.88f, middle)
+        drawCircle(Color(0xFFC48A00), r * 0.62f, middle)
+        drawCircle(Color(0xFFFFDC63), r * 0.54f, middle)
+        drawCircle(
+            color = Color.White.copy(alpha = 0.55f),
+            radius = r * 0.16f,
+            center = Offset(middle.x - r * 0.3f, middle.y - r * 0.36f),
+        )
     }
 }
 
@@ -175,33 +237,35 @@ fun SiteDivider(height: Dp = 30.dp) {
     )
 }
 
-/** The funds display in the site header. */
+/** The balance display: a coin and a number, nothing else. */
 @Composable
 fun FundsReadout(coins: Int) {
-    Column {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Coin(size = 26.dp)
+        Spacer(Modifier.width(8.dp))
         Text(
-            "SITE FUNDS",
-            color = SteelText,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.6.sp,
+            formatCoins(coins),
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp,
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Filled.MonetizationOn,
-                contentDescription = null,
-                tint = HazardYellow,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                formatCoins(coins),
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp,
-            )
-        }
+    }
+}
+
+/** A coin next to an amount, for prices and rewards inside panels. */
+@Composable
+fun CoinAmount(
+    amount: Int,
+    modifier: Modifier = Modifier,
+    tint: Color = Color.White,
+    fontSize: TextUnit = 18.sp,
+    coinSize: Dp = 18.dp,
+) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Coin(size = coinSize)
+        Spacer(Modifier.width(6.dp))
+        Text(formatCoins(amount), color = tint, fontSize = fontSize, fontWeight = FontWeight.Black)
     }
 }
 

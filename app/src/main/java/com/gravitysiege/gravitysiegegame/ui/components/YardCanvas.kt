@@ -5,7 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
@@ -45,7 +47,7 @@ fun Map<String, ImageBitmap?>.ratioOf(name: String): Double {
 }
 
 @Composable
-fun YardCanvas(stage: SiegeStage, modifier: Modifier = Modifier) {
+fun YardCanvas(stage: SiegeStage, modifier: Modifier = Modifier, tint: Color? = null) {
     val art = rememberSceneArt()
     remember(art) {
         stage.measureWith { name -> art.ratioOf(name) }
@@ -101,6 +103,7 @@ fun YardCanvas(stage: SiegeStage, modifier: Modifier = Modifier) {
                     w = w,
                     h = h,
                     deg = Math.toDegrees(storey.lean + storey.wobble).toFloat(),
+                    tint = tint,
                 )
             }
         }
@@ -148,7 +151,9 @@ fun YardCanvas(stage: SiegeStage, modifier: Modifier = Modifier) {
                     cap = StrokeCap.Round,
                 )
             }
-            art[stage.hangArt]?.let { drawSprite(it, house.x, house.y, houseW, houseH, swayDeg) }
+            art[stage.hangArt]?.let {
+                drawSprite(it, house.x, house.y, houseW, houseH, swayDeg, tint = tint)
+            }
         }
 
         stage.airborne?.let { flying ->
@@ -160,6 +165,7 @@ fun YardCanvas(stage: SiegeStage, modifier: Modifier = Modifier) {
                     w = (flying.span * scale).toFloat(),
                     h = (flying.rise * scale).toFloat(),
                     deg = Math.toDegrees(flying.turn).toFloat(),
+                    tint = tint,
                 )
             }
         }
@@ -195,6 +201,7 @@ internal fun DrawScope.drawSprite(
     h: Float,
     deg: Float = 0f,
     alpha: Float = 1f,
+    tint: Color? = null,
 ) {
     val paint = {
         drawImage(
@@ -204,6 +211,7 @@ internal fun DrawScope.drawSprite(
             dstOffset = IntOffset((cx - w / 2f).roundToInt(), (cy - h / 2f).roundToInt()),
             dstSize = IntSize(w.roundToInt().coerceAtLeast(1), h.roundToInt().coerceAtLeast(1)),
             alpha = alpha,
+            colorFilter = tint?.let { ColorFilter.tint(it, BlendMode.Modulate) },
             filterQuality = FilterQuality.High,
         )
     }
