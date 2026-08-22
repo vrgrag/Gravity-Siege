@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -138,10 +139,9 @@ fun PlateButton(
     /** Optional second line spelling out what the button will actually do. */
     note: String? = null,
 ) {
-    val tall = note != null && height < 68.dp
     Box(
         modifier
-            .height(if (tall) 68.dp else height)
+            .height(height)
             .clip(RoundedCornerShape(16.dp))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -150,10 +150,7 @@ fun PlateButton(
         if (!enabled) {
             Box(Modifier.matchParentSize().background(Night.copy(alpha = 0.35f)))
         }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-        ) {
+        if (note == null) {
             Text(
                 label,
                 color = ink,
@@ -162,11 +159,26 @@ fun PlateButton(
                 letterSpacing = 0.4.sp,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
-            note?.let {
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Text(
+                    label,
+                    color = ink,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = fontSize,
+                    letterSpacing = 0.4.sp,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    it,
+                    note,
                     color = ink.copy(alpha = 0.78f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,

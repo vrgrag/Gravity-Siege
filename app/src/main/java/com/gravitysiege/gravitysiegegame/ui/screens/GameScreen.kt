@@ -424,11 +424,6 @@ private fun Controls(
             val build = @Composable { wide: Modifier ->
                 PlateButton(
                     label = if (hanging) "Drop" else "Build",
-                    note = if (hanging) {
-                        "${engine.floors.size} floors · ${mode.label}"
-                    } else {
-                        "${formatCoins(store.bet)} · ${mode.label}"
-                    },
                     onClick = {
                         sfx.click()
                         when (engine.phase) {
