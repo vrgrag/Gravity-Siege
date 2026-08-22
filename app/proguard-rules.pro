@@ -1,0 +1,7 @@
+-keep class com.gravitysiege.gravitysiegegame.GravitySiegeApp
+-keep class com.gravitysiege.gravitysiegegame.MainActivity
+-keep class com.gravitysiege.gravitysiegegame.GameStore { *; }
+-keep class com.gravitysiege.gravitysiegegame.AssetBitmaps { *; }
+-keep class com.gravitysiege.gravitysiegegame.ui.** { *; }
+-keep class com.gravitysiege.gravitysiegegame.game.** { *; }
+-keep class com.gravitysiege.gravitysiegegame.audio.** { *; }
