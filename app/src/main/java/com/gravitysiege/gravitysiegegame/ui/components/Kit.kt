@@ -25,9 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -38,6 +42,7 @@ import com.gravitysiege.gravitysiegegame.ui.theme.Gold
 import com.gravitysiege.gravitysiegegame.ui.theme.Ink
 import com.gravitysiege.gravitysiegegame.ui.theme.InkMuted
 import com.gravitysiege.gravitysiegegame.ui.theme.Line
+import com.gravitysiege.gravitysiegegame.ui.theme.Night
 import com.gravitysiege.gravitysiegegame.ui.theme.Panel
 import com.gravitysiege.gravitysiegegame.ui.theme.formatCoins
 
@@ -65,21 +70,25 @@ fun AssetImage(
 }
 
 @Composable
-fun WhiteScreen(content: @Composable () -> Unit) {
-    Box(
-        Modifier
-            .background(Color.White)
-            .then(Modifier),
-    ) { content() }
+fun GameTitle(modifier: Modifier = Modifier, height: Dp = 150.dp) {
+    AssetImage(
+        "trim_Game_Name.webp",
+        modifier
+            .fillMaxWidth()
+            .height(height),
+        ContentScale.Fit,
+    )
 }
 
 @Composable
-fun CoinPill(coins: Int, modifier: Modifier = Modifier) {
+fun CoinPill(coins: Int, modifier: Modifier = Modifier, light: Boolean = false) {
+    val bg = if (light) Color.White.copy(0.88f) else Panel
+    val stroke = if (light) Gold else Line
     Row(
         modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Panel)
-            .border(1.dp, Line, RoundedCornerShape(24.dp))
+            .background(bg)
+            .border(1.4.dp, stroke, RoundedCornerShape(24.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -94,33 +103,31 @@ fun CircleIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     size: Dp = 46.dp,
+    light: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier
             .size(size)
+            .shadow(6.dp, CircleShape)
             .clip(CircleShape)
-            .background(Panel)
-            .border(1.dp, Line, CircleShape)
+            .background(if (light) Color.White.copy(0.9f) else Panel)
+            .border(1.4.dp, if (light) Gold else Line, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { content() }
 }
 
 @Composable
-fun BackButton(onClick: () -> Unit, dark: Boolean = true) {
-    CircleIconButton(onClick) {
-        Icon(
-            Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Back",
-            tint = if (dark) Ink else Color.White,
-        )
+fun BackButton(onClick: () -> Unit, light: Boolean = false) {
+    CircleIconButton(onClick, light = light) {
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Ink)
     }
 }
 
 @Composable
-fun SettingsButton(onClick: () -> Unit) {
-    CircleIconButton(onClick) {
+fun SettingsButton(onClick: () -> Unit, light: Boolean = false) {
+    CircleIconButton(onClick, light = light) {
         Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Ink)
     }
 }
@@ -145,25 +152,35 @@ fun ScreenHeader(title: String, onBack: () -> Unit, modifier: Modifier = Modifie
 }
 
 @Composable
-fun AssetTextButton(
+fun PlateButton(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     height: Dp = 72.dp,
+    enabled: Boolean = true,
+    ink: Color = Color.White,
 ) {
     Box(
         modifier
             .height(height)
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick),
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         AssetImage("button_blank.webp", Modifier.matchParentSize(), ContentScale.FillBounds)
+        if (!enabled) {
+            Box(Modifier.matchParentSize().background(Night.copy(alpha = 0.35f)))
+        }
+        val halo = if (ink.luminance() > 0.4f) Color.Black.copy(0.55f) else Color.White.copy(0.6f)
         Text(
             label,
-            color = Color.White,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 22.sp,
+            style = TextStyle(
+                color = ink,
+                fontWeight = FontWeight.Black,
+                fontSize = 22.sp,
+                letterSpacing = 1.6.sp,
+                shadow = Shadow(color = halo, blurRadius = 6f),
+            ),
         )
     }
 }
@@ -179,6 +196,7 @@ fun SettingRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Panel)
+            .border(1.dp, Line, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -5,9 +5,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 val Sky = Color(0xFF4EB6F0)
 val SkyDeep = Color(0xFF1E7FBF)
+val Night = Color(0xFF0B1A2A)
 val Gold = Color(0xFFF2B705)
 val GoldDark = Color(0xFFC48A00)
 val Ink = Color(0xFF1B1B1B)
@@ -32,8 +35,9 @@ fun SiegeTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = scheme, content = content)
 }
 
-private val coinFormat = DecimalFormat("#,###")
-private val multFormat = DecimalFormat("0.00")
+private val symbols = DecimalFormatSymbols(Locale.US)
+private val coinFormat = DecimalFormat("#,###", symbols)
+private val multFormat = DecimalFormat("0.00", symbols)
 
 fun formatCoins(value: Int): String = coinFormat.format(value)
 fun formatMult(value: Double): String = "x" + multFormat.format(value)

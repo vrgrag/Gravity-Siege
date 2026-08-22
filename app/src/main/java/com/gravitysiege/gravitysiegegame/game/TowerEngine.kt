@@ -223,13 +223,8 @@ class TowerEngine(private val rng: Random = Random.Default) {
     companion object {
         const val MAX_MULT = 100.0
         const val TRIPLE_FLOORS = 3
-        const val BASE_ASSET = "start_block_asset.webp"
-        val HOUSES = listOf(
-            "block_asset_01.webp",
-            "block_asset_02.webp",
-            "block_asset_03.webp",
-            "block_asset_04.webp",
-        )
+        const val BASE_ASSET = Yard.PLINTH
+        val HOUSES = Yard.HOUSES
         val WHEEL_SEGS = listOf(
             WheelSeg("x1.5", 1.5, false),
             WheelSeg("x2", 2.0, false),

@@ -32,7 +32,7 @@ object AssetBitmaps {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.assets.open(path).use { BitmapFactory.decodeStream(it, null, bounds) }
         var sample = 1
-        val maxSide = 1280
+        val maxSide = 768
         while (bounds.outWidth / sample > maxSide || bounds.outHeight / sample > maxSide) {
             sample *= 2
         }
