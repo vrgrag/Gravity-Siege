@@ -353,73 +353,74 @@ private fun Controls(
     val mode = store.mode
 
     SiteDock(modifier) {
-        Column(
-            Modifier
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-        ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ChipButton("All In", SkyDeep, enabled = !betLocked) {
-                    sfx.click()
-                    store.allIn()
-                }
-                SteelStep(Icons.Filled.Remove, "Lower bet", !betLocked) {
-                    sfx.click()
-                    store.cycleBet(-1)
-                }
-                SteelWell(
-                    Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Coin(size = 16.dp)
-                        Spacer(Modifier.width(7.dp))
-                        Text(
-                            formatCoins(store.bet),
-                            color = HazardYellow,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                        )
-                    }
-                }
-                SteelStep(Icons.Filled.Add, "Raise bet", !betLocked) {
-                    sfx.click()
-                    store.cycleBet(1)
-                }
-                ChipButton("x2", SkyDeep, enabled = !betLocked) {
-                    sfx.click()
-                    store.doubleBet()
-                }
-            }
-
-            Spacer(Modifier.height(10.dp))
-            Row(
+        Column(Modifier.fillMaxWidth()) {
+            Column(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(Color(0xFF10141A)),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
-                RiskMode.entries.forEach { option ->
-                    ModePill(
-                        label = option.label,
-                        active = option == mode,
-                        tint = option.tint,
-                        modifier = Modifier.weight(1f),
-                        enabled = !betLocked,
-                    ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ChipButton("All In", SkyDeep, enabled = !betLocked) {
                         sfx.click()
-                        store.pickMode(option)
+                        store.allIn()
+                    }
+                    SteelStep(Icons.Filled.Remove, "Lower bet", !betLocked) {
+                        sfx.click()
+                        store.cycleBet(-1)
+                    }
+                    SteelWell(
+                        Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Coin(size = 16.dp)
+                            Spacer(Modifier.width(7.dp))
+                            Text(
+                                formatCoins(store.bet),
+                                color = HazardYellow,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Black,
+                            )
+                        }
+                    }
+                    SteelStep(Icons.Filled.Add, "Raise bet", !betLocked) {
+                        sfx.click()
+                        store.cycleBet(1)
+                    }
+                    ChipButton("x2", SkyDeep, enabled = !betLocked) {
+                        sfx.click()
+                        store.doubleBet()
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(13.dp))
+                        .background(Color(0xFF10141A)),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    RiskMode.entries.forEach { option ->
+                        ModePill(
+                            label = option.label,
+                            active = option == mode,
+                            tint = option.tint,
+                            modifier = Modifier.weight(1f),
+                            enabled = !betLocked,
+                        ) {
+                            sfx.click()
+                            store.pickMode(option)
+                        }
                     }
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
             val build = @Composable { wide: Modifier ->
                 PlateButton(
                     label = if (hanging) "Drop" else "Build",
@@ -464,29 +465,36 @@ private fun Controls(
                 )
             }
 
-            // Cashing out only exists once a tower is standing, so the build
-            // button keeps the full width until there is something to bank.
-            if (canBank) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    build(Modifier.weight(1f))
-                    PlateButton(
-                        label = "Cash Out",
-                        note = formatCoins(engine.potentialWin),
-                        onClick = {
-                            val paid = engine.cashOut()
-                            store.credit(paid)
-                            stage.showerCoins()
-                            sfx.success()
-                            onBanner("CASHED OUT ${formatCoins(paid)}")
-                        },
-                        modifier = Modifier.weight(1f),
-                        height = 68.dp,
-                        fontSize = 17.sp,
-                        ink = Ink,
-                    )
+            // Build and Drop sit on the bottom lip of the dock, right above
+            // the home indicator, so the thumb lands on them naturally.
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 10.dp),
+            ) {
+                if (canBank) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        build(Modifier.weight(1f))
+                        PlateButton(
+                            label = "Cash Out",
+                            note = formatCoins(engine.potentialWin),
+                            onClick = {
+                                val paid = engine.cashOut()
+                                store.credit(paid)
+                                stage.showerCoins()
+                                sfx.success()
+                                onBanner("CASHED OUT ${formatCoins(paid)}")
+                            },
+                            modifier = Modifier.weight(1f),
+                            height = 68.dp,
+                            fontSize = 17.sp,
+                            ink = Ink,
+                        )
+                    }
+                } else {
+                    build(Modifier.fillMaxWidth())
                 }
-            } else {
-                build(Modifier.fillMaxWidth())
             }
         }
     }
