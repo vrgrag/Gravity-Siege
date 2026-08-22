@@ -287,3 +287,26 @@ fun SiteHeader(modifier: Modifier = Modifier, content: @Composable BoxScope.() -
         )
     }
 }
+
+/**
+ * The header's mirror image for the bottom of the screen: hazard trim on top
+ * and steel running edge to edge, so the controls read as one solid dock
+ * rather than a panel floating over the yard.
+ */
+@Composable
+fun SiteDock(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+    Column(modifier.fillMaxWidth()) {
+        HazardTape(
+            Modifier
+                .fillMaxWidth()
+                .height(9.dp),
+            stripe = 11.dp,
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color(0xFF2C333B), Color(0xFF13171C)))),
+            content = content,
+        )
+    }
+}

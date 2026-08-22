@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -44,10 +45,10 @@ import com.gravitysiege.gravitysiegegame.game.SiegeStage
 import com.gravitysiege.gravitysiegegame.game.TowerEngine
 import com.gravitysiege.gravitysiegegame.game.Verdict
 import com.gravitysiege.gravitysiegegame.ui.components.FundsReadout
-import com.gravitysiege.gravitysiegegame.ui.components.HazardTape
 import com.gravitysiege.gravitysiegegame.ui.components.HazardYellow
 import com.gravitysiege.gravitysiegegame.ui.components.PlateButton
 import com.gravitysiege.gravitysiegegame.ui.components.SiteDivider
+import com.gravitysiege.gravitysiegegame.ui.components.SiteDock
 import com.gravitysiege.gravitysiegegame.ui.components.SiteHeader
 import com.gravitysiege.gravitysiegegame.ui.components.SiteStat
 import com.gravitysiege.gravitysiegegame.ui.components.SteelEdge
@@ -251,9 +252,7 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
                 busy = busy,
                 hanging = hanging,
                 onBanner = { banner = it },
-                modifier = Modifier.padding(horizontal = 12.dp),
             )
-            Spacer(Modifier.height(14.dp))
         }
 
         wheelLabel?.let { label ->
@@ -336,8 +335,12 @@ private fun Controls(
 ) {
     val canBank = hanging && engine.floors.isNotEmpty() && stage.hooked
     val betLocked = busy || hanging
-    SteelPlate(modifier.fillMaxWidth()) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
+    SiteDock(modifier) {
+        Column(
+            Modifier
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+        ) {
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -389,11 +392,11 @@ private fun Controls(
                 )
             }
             Spacer(Modifier.height(10.dp))
-            HazardTape(
+            Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(7.dp),
-                stripe = 9.dp,
+                    .height(1.dp)
+                    .background(SteelEdge.copy(alpha = 0.5f)),
             )
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
