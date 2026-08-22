@@ -237,8 +237,9 @@ fun ModePill(
                 enabled -> SteelText
                 else -> SteelText.copy(alpha = 0.4f)
             },
-            fontSize = 13.sp,
-            fontWeight = if (active) FontWeight.Black else FontWeight.Bold,
+            fontSize = 12.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
         )
     }
 }
@@ -264,9 +265,9 @@ fun ChipButton(
         Text(
             label,
             color = if (enabled) Color.White else Color.White.copy(alpha = 0.45f),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.6.sp,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
         )
     }
 }

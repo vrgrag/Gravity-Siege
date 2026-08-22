@@ -183,7 +183,7 @@ private fun SiteBoard(
             )
             Spacer(Modifier.height(12.dp))
             PlateButton(
-                label = "START SHIFT",
+                label = "Start Shift",
                 onClick = onPlay,
                 modifier = Modifier.fillMaxWidth(),
                 height = 74.dp,

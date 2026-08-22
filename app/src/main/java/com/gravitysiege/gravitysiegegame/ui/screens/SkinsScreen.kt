@@ -185,7 +185,7 @@ private fun CrewCard(
                 letterSpacing = 1.sp,
             )
             owned -> PlateButton(
-                label = "PUT ON SHIFT",
+                label = "Put on shift",
                 onClick = onPick,
                 modifier = Modifier.fillMaxWidth(),
                 height = 50.dp,
@@ -202,7 +202,7 @@ private fun CrewCard(
                     fontSize = 17.sp,
                 )
                 PlateButton(
-                    label = "HIRE",
+                    label = "Hire",
                     onClick = onPick,
                     modifier = Modifier.width(150.dp),
                     height = 50.dp,

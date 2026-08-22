@@ -363,7 +363,7 @@ private fun Controls(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ChipButton("ALL IN", SkyDeep, enabled = !betLocked) {
+                ChipButton("All In", SkyDeep, enabled = !betLocked) {
                     sfx.click()
                     store.allIn()
                 }
@@ -422,11 +422,11 @@ private fun Controls(
             Spacer(Modifier.height(10.dp))
             val build = @Composable { wide: Modifier ->
                 PlateButton(
-                    label = if (hanging) "DROP" else "BUILD",
+                    label = if (hanging) "Drop" else "Build",
                     note = if (hanging) {
                         "${engine.floors.size} floors · ${mode.label}"
                     } else {
-                        "${formatCoins(store.bet)} coins · ${mode.label}"
+                        "${formatCoins(store.bet)} · ${mode.label}"
                     },
                     onClick = {
                         sfx.click()
@@ -458,7 +458,8 @@ private fun Controls(
                     },
                     enabled = !busy,
                     modifier = wide,
-                    height = 62.dp,
+                    height = 68.dp,
+                    fontSize = 20.sp,
                     ink = Ink,
                 )
             }
@@ -469,8 +470,8 @@ private fun Controls(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     build(Modifier.weight(1f))
                     PlateButton(
-                        label = "CASH OUT",
-                        note = "${formatCoins(engine.potentialWin)} coins",
+                        label = "Cash Out",
+                        note = formatCoins(engine.potentialWin),
                         onClick = {
                             val paid = engine.cashOut()
                             store.credit(paid)
@@ -479,8 +480,8 @@ private fun Controls(
                             onBanner("CASHED OUT ${formatCoins(paid)}")
                         },
                         modifier = Modifier.weight(1f),
-                        height = 62.dp,
-                        fontSize = 19.sp,
+                        height = 68.dp,
+                        fontSize = 17.sp,
                         ink = Ink,
                     )
                 }

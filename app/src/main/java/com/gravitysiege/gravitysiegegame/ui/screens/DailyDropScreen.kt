@@ -87,7 +87,7 @@ fun DailyDropScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
             PlateButton(
-                label = if (ready) "COLLECT" else "COLLECTED",
+                label = if (ready) "Collect" else "Collected",
                 onClick = {
                     val paid = store.claimDaily()
                     if (paid > 0) {
