@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,11 +41,16 @@ import androidx.compose.ui.unit.sp
 import com.gravitysiege.gravitysiegegame.GameStore
 import com.gravitysiege.gravitysiegegame.audio.Sfx
 import com.gravitysiege.gravitysiegegame.game.FloorKind
+import com.gravitysiege.gravitysiegegame.game.Leaderboard
+import com.gravitysiege.gravitysiegegame.game.RiskMode
 import com.gravitysiege.gravitysiegegame.game.RoundPhase
 import com.gravitysiege.gravitysiegegame.game.SiegeStage
 import com.gravitysiege.gravitysiegegame.game.TowerEngine
 import com.gravitysiege.gravitysiegegame.game.Verdict
+import com.gravitysiege.gravitysiegegame.ui.components.ChipButton
+import com.gravitysiege.gravitysiegegame.ui.components.Coin
 import com.gravitysiege.gravitysiegegame.ui.components.FundsReadout
+import com.gravitysiege.gravitysiegegame.ui.components.ModePill
 import com.gravitysiege.gravitysiegegame.ui.components.HazardYellow
 import com.gravitysiege.gravitysiegegame.ui.components.PlateButton
 import com.gravitysiege.gravitysiegegame.ui.components.SiteDivider
@@ -61,9 +67,11 @@ import com.gravitysiege.gravitysiegegame.ui.components.YardCanvas
 import com.gravitysiege.gravitysiegegame.ui.theme.BuildGreen
 import com.gravitysiege.gravitysiegegame.ui.theme.Danger
 import com.gravitysiege.gravitysiegegame.ui.theme.Ink
+import com.gravitysiege.gravitysiegegame.ui.theme.SkyDeep
 import com.gravitysiege.gravitysiegegame.ui.theme.formatCoins
 import com.gravitysiege.gravitysiegegame.ui.theme.formatMult
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 
 @Composable
 fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
@@ -72,17 +80,23 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
     val stage = remember { SiegeStage() }
     var wheelLabel by remember { mutableStateOf<String?>(null) }
     var banner by remember { mutableStateOf<String?>(null) }
+    var shift by remember { mutableIntStateOf(1) }
     val skin = store.skin
+    val mode = store.mode
+    val rank = remember(store.biggestWin, store.tallestTower) {
+        Leaderboard.rankOf(LocalDate.now().toEpochDay(), store.biggestWin, store.tallestTower)
+    }
 
     LaunchedEffect(Unit) {
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
 
-    // The crew on shift decides the rig's tempo and the risk-to-reward trade.
-    LaunchedEffect(skin.id) {
+    // The hired crew sets the rig's tempo; the crew handicap and the risk mode
+    // picked above the build button stack into one risk-to-reward trade.
+    LaunchedEffect(skin.id, mode) {
         stage.tempo = skin.tempo
-        engine.riskBias = skin.risk
-        engine.payoutBias = skin.payout
+        engine.riskBias = skin.risk + mode.risk
+        engine.payoutBias = skin.payout * mode.payout
     }
 
     LaunchedEffect(Unit) {
@@ -178,23 +192,22 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            SteelKey(Icons.AutoMirrored.Filled.ArrowBack, "Back", size = 42.dp) {
-                                if (hanging && engine.floors.isNotEmpty()) {
-                                    store.credit(engine.cashOut())
-                                }
-                                back()
+                        SteelKey(Icons.AutoMirrored.Filled.ArrowBack, "Back", size = 42.dp) {
+                            if (hanging && engine.floors.isNotEmpty()) {
+                                store.credit(engine.cashOut())
                             }
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                skin.title,
-                                color = skin.accent,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.2.sp,
-                            )
+                            back()
                         }
-                        FundsReadout(store.coins)
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "${skin.title} · RANK #$rank · SHIFT $shift",
+                                color = SteelText,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp,
+                            )
+                            FundsReadout(store.coins)
+                        }
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(
@@ -252,6 +265,7 @@ fun GameScreen(store: GameStore, sfx: Sfx, back: () -> Unit) {
                 busy = busy,
                 hanging = hanging,
                 onBanner = { banner = it },
+                onShift = { shift++ },
             )
         }
 
@@ -331,10 +345,13 @@ private fun Controls(
     busy: Boolean,
     hanging: Boolean,
     onBanner: (String?) -> Unit,
+    onShift: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val canBank = hanging && engine.floors.isNotEmpty() && stage.hooked
     val betLocked = busy || hanging
+    val mode = store.mode
+
     SiteDock(modifier) {
         Column(
             Modifier
@@ -346,6 +363,10 @@ private fun Controls(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                ChipButton("ALL IN", SkyDeep, enabled = !betLocked) {
+                    sfx.click()
+                    store.allIn()
+                }
                 SteelStep(Icons.Filled.Remove, "Lower bet", !betLocked) {
                     sfx.click()
                     store.cycleBet(-1)
@@ -353,17 +374,11 @@ private fun Controls(
                 SteelWell(
                     Modifier
                         .weight(1f)
-                        .height(44.dp),
+                        .height(48.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "BET",
-                            color = SteelText,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.4.sp,
-                        )
-                        Spacer(Modifier.width(8.dp))
+                        Coin(size = 16.dp)
+                        Spacer(Modifier.width(7.dp))
                         Text(
                             formatCoins(store.bet),
                             color = HazardYellow,
@@ -376,32 +391,43 @@ private fun Controls(
                     sfx.click()
                     store.cycleBet(1)
                 }
-                Text(
-                    "x2",
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(HazardYellow.copy(alpha = if (betLocked) 0.25f else 0.9f))
-                        .clickable(enabled = !betLocked) {
-                            sfx.click()
-                            store.doubleBet()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
-                    fontWeight = FontWeight.Black,
-                    fontSize = 15.sp,
-                    color = Ink,
-                )
+                ChipButton("x2", SkyDeep, enabled = !betLocked) {
+                    sfx.click()
+                    store.doubleBet()
+                }
             }
+
             Spacer(Modifier.height(10.dp))
-            Box(
+            Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
-                    .background(SteelEdge.copy(alpha = 0.5f)),
-            )
+                    .clip(RoundedCornerShape(13.dp))
+                    .background(Color(0xFF10141A)),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                RiskMode.entries.forEach { option ->
+                    ModePill(
+                        label = option.label,
+                        active = option == mode,
+                        tint = option.tint,
+                        modifier = Modifier.weight(1f),
+                        enabled = !betLocked,
+                    ) {
+                        sfx.click()
+                        store.pickMode(option)
+                    }
+                }
+            }
+
             Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            val build = @Composable { wide: Modifier ->
                 PlateButton(
                     label = if (hanging) "DROP" else "BUILD",
+                    note = if (hanging) {
+                        "${engine.floors.size} floors · ${mode.label}"
+                    } else {
+                        "${formatCoins(store.bet)} coins · ${mode.label}"
+                    },
                     onClick = {
                         sfx.click()
                         when (engine.phase) {
@@ -420,6 +446,7 @@ private fun Controls(
                                     }
                                 } else if (store.spend(store.bet)) {
                                     engine.start(store.bet)
+                                    onShift()
                                 }
                             }
                             RoundPhase.LIVE -> if (stage.ready) {
@@ -430,24 +457,35 @@ private fun Controls(
                         }
                     },
                     enabled = !busy,
-                    modifier = Modifier.weight(1f),
-                    height = 60.dp,
+                    modifier = wide,
+                    height = 62.dp,
                     ink = Ink,
                 )
-                PlateButton(
-                    label = "CASH OUT",
-                    onClick = {
-                        val paid = engine.cashOut()
-                        store.credit(paid)
-                        stage.showerCoins()
-                        sfx.success()
-                        onBanner("CASHED OUT ${formatCoins(paid)}")
-                    },
-                    enabled = canBank,
-                    modifier = Modifier.weight(1f),
-                    height = 60.dp,
-                    ink = Ink,
-                )
+            }
+
+            // Cashing out only exists once a tower is standing, so the build
+            // button keeps the full width until there is something to bank.
+            if (canBank) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    build(Modifier.weight(1f))
+                    PlateButton(
+                        label = "CASH OUT",
+                        note = "${formatCoins(engine.potentialWin)} coins",
+                        onClick = {
+                            val paid = engine.cashOut()
+                            store.credit(paid)
+                            stage.showerCoins()
+                            sfx.success()
+                            onBanner("CASHED OUT ${formatCoins(paid)}")
+                        },
+                        modifier = Modifier.weight(1f),
+                        height = 62.dp,
+                        fontSize = 19.sp,
+                        ink = Ink,
+                    )
+                }
+            } else {
+                build(Modifier.fillMaxWidth())
             }
         }
     }

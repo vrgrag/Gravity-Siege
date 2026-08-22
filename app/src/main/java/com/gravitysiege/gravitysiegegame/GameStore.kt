@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.gravitysiege.gravitysiegegame.game.RiskMode
 import com.gravitysiege.gravitysiegegame.game.Skin
 import com.gravitysiege.gravitysiegegame.game.Skins
 import java.time.LocalDate
@@ -17,7 +18,9 @@ class GameStore private constructor(context: Context) {
 
     var coins by mutableIntStateOf(prefs.getInt("coins", STARTING_COINS))
         private set
-    var betIndex by mutableIntStateOf(prefs.getInt("betIndex", 2))
+    var bet by mutableIntStateOf(prefs.getInt("betValue", BET_STEPS[2]))
+        private set
+    var mode by mutableStateOf(RiskMode.byName(prefs.getString("mode", null)))
         private set
     var soundOn by mutableStateOf(prefs.getBoolean("sound", true))
         private set
@@ -37,9 +40,10 @@ class GameStore private constructor(context: Context) {
     var streak by mutableIntStateOf(prefs.getInt("dailyStreak", 0))
         private set
 
-    val bet: Int get() = BET_STEPS[betIndex.coerceIn(0, BET_STEPS.lastIndex)]
-
     val skin: Skin get() = Skins.byId(skinId)
+
+    /** The most that can be staked right now: never more than is on hand. */
+    val betCeiling: Int get() = maxOf(BET_STEPS.first(), coins)
 
     fun owns(skin: Skin): Boolean = skin.free || skin.id in ownedSkins
 
@@ -48,13 +52,36 @@ class GameStore private constructor(context: Context) {
         save()
     }
 
+    /**
+     * Walks the stake up or down. Past the top of the ladder it keeps doubling,
+     * so a rich player is not stuck at the largest printed step.
+     */
     fun cycleBet(delta: Int) {
-        betIndex = (betIndex + delta).coerceIn(0, BET_STEPS.lastIndex)
-        save()
+        bet = if (delta > 0) {
+            BET_STEPS.firstOrNull { it > bet } ?: bet * 2
+        } else {
+            BET_STEPS.lastOrNull { it < bet } ?: (bet / 2)
+        }
+        settleBet()
     }
 
     fun doubleBet() {
-        betIndex = (betIndex + 1).coerceAtMost(BET_STEPS.lastIndex)
+        bet *= 2
+        settleBet()
+    }
+
+    fun allIn() {
+        bet = betCeiling
+        settleBet()
+    }
+
+    fun pickMode(value: RiskMode) {
+        mode = value
+        save()
+    }
+
+    private fun settleBet() {
+        bet = bet.coerceIn(BET_STEPS.first(), betCeiling)
         save()
     }
 
@@ -140,7 +167,8 @@ class GameStore private constructor(context: Context) {
     private fun save() {
         prefs.edit()
             .putInt("coins", coins)
-            .putInt("betIndex", betIndex)
+            .putInt("betValue", bet)
+            .putString("mode", mode.name)
             .putBoolean("sound", soundOn)
             .putInt("biggest", biggestWin)
             .putInt("tallest", tallestTower)

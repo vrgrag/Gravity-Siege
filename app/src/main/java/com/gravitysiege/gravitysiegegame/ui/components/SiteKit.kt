@@ -211,6 +211,66 @@ fun SteelStep(icon: ImageVector, label: String, enabled: Boolean, onClick: () ->
     }
 }
 
+/** Tab in the risk selector: filled in its own colour when it is the live one. */
+@Composable
+fun ModePill(
+    label: String,
+    active: Boolean,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(11.dp)
+    Box(
+        modifier
+            .clip(shape)
+            .background(if (active) tint else Color.Transparent)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 9.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            color = when {
+                active -> SiteInk
+                enabled -> SteelText
+                else -> SteelText.copy(alpha = 0.4f)
+            },
+            fontSize = 13.sp,
+            fontWeight = if (active) FontWeight.Black else FontWeight.Bold,
+        )
+    }
+}
+
+/** Compact pill action, used for ALL IN and the stake doubler. */
+@Composable
+fun ChipButton(
+    label: String,
+    face: Color,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        modifier
+            .clip(shape)
+            .background(if (enabled) face else face.copy(alpha = 0.3f))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 13.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            color = if (enabled) Color.White else Color.White.copy(alpha = 0.45f),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.6.sp,
+        )
+    }
+}
+
 /** Small stencilled readout used across the site panels. */
 @Composable
 fun SiteStat(label: String, value: String, tint: Color = Color.White) {

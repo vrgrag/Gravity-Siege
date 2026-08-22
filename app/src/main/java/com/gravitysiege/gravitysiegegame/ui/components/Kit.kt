@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gravitysiege.gravitysiegegame.AssetBitmaps
@@ -135,6 +137,9 @@ fun PlateButton(
     height: Dp = 72.dp,
     enabled: Boolean = true,
     ink: Color = Color.White,
+    fontSize: TextUnit = 22.sp,
+    /** Optional second line spelling out what the button will actually do. */
+    note: String? = null,
 ) {
     Box(
         modifier
@@ -148,16 +153,27 @@ fun PlateButton(
             Box(Modifier.matchParentSize().background(Night.copy(alpha = 0.35f)))
         }
         val halo = if (ink.luminance() > 0.4f) Color.Black.copy(0.55f) else Color.White.copy(0.6f)
-        Text(
-            label,
-            style = TextStyle(
-                color = ink,
-                fontWeight = FontWeight.Black,
-                fontSize = 22.sp,
-                letterSpacing = 1.6.sp,
-                shadow = Shadow(color = halo, blurRadius = 6f),
-            ),
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                label,
+                style = TextStyle(
+                    color = ink,
+                    fontWeight = FontWeight.Black,
+                    fontSize = fontSize,
+                    letterSpacing = 1.6.sp,
+                    shadow = Shadow(color = halo, blurRadius = 6f),
+                ),
+            )
+            note?.let {
+                Text(
+                    it,
+                    color = ink.copy(alpha = 0.72f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.4.sp,
+                )
+            }
+        }
     }
 }
 
