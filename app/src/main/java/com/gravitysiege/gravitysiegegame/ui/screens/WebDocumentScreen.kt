@@ -19,7 +19,7 @@ import com.gravitysiege.gravitysiegegame.ui.components.ScreenHeader
 object WebPages {
     const val PRIVACY = "privacy-policy"
     const val SUPPORT = "support"
-    const val PRIVACY_URL = "https://gravitysiegge.com/privacy-policy.html"
+    const val PRIVACY_URL = "https://vrgrag.github.io/pp/"
     const val SUPPORT_URL = "https://gravitysiegge.com/support.html"
 
     fun title(page: String): String = when (page) {
@@ -28,16 +28,19 @@ object WebPages {
         else -> "Document"
     }
 
-    fun assetFile(page: String): String? = when (page) {
-        PRIVACY -> "web/privacy-policy.html"
-        SUPPORT -> "web/support.html"
+    fun loadUrl(page: String): String? = when (page) {
+        PRIVACY -> PRIVACY_URL
+        SUPPORT -> "file:///android_asset/web/support.html"
         else -> null
     }
+
+    /** Privacy is fetched from the web; support stays bundled for offline use. */
+    fun needsNetwork(page: String): Boolean = page == PRIVACY
 }
 
 @Composable
 fun WebDocumentScreen(page: String, back: () -> Unit) {
-    val asset = WebPages.assetFile(page)
+    val url = WebPages.loadUrl(page)
     Column(
         Modifier
             .fillMaxSize()
@@ -49,7 +52,8 @@ fun WebDocumentScreen(page: String, back: () -> Unit) {
             onBack = back,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        if (asset != null) {
+        if (url != null) {
+            val online = WebPages.needsNetwork(page)
             val allowJavaScript = page == WebPages.SUPPORT
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
@@ -61,16 +65,16 @@ fun WebDocumentScreen(page: String, back: () -> Unit) {
                             domStorageEnabled = allowJavaScript
                             allowFileAccess = true
                             allowContentAccess = true
-                            blockNetworkLoads = true
-                            blockNetworkImage = true
+                            blockNetworkLoads = !online
+                            blockNetworkImage = !online
                         }
                         webViewClient = object : WebViewClient() {
                             override fun shouldOverrideUrlLoading(
                                 view: WebView?,
                                 request: WebResourceRequest?,
-                            ): Boolean = true
+                            ): Boolean = !online
                         }
-                        loadUrl("file:///android_asset/$asset")
+                        loadUrl(url)
                     }
                 },
             )
