@@ -36,8 +36,9 @@ fun SiegeTheme(content: @Composable () -> Unit) {
 }
 
 private val symbols = DecimalFormatSymbols(Locale.US)
-private val coinFormat = DecimalFormat("#,###", symbols)
-private val multFormat = DecimalFormat("0.00", symbols)
+private val coinSymbols = DecimalFormatSymbols(Locale.US).apply { groupingSeparator = ' ' }
+private val coinFormat = DecimalFormat("#,##0", coinSymbols)
+private val multFormat = DecimalFormat("0.##", symbols)
 
 fun formatCoins(value: Int): String = coinFormat.format(value)
 fun formatMult(value: Double): String = "x" + multFormat.format(value)

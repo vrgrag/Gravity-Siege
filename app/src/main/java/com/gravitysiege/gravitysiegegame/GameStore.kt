@@ -11,6 +11,7 @@ import com.gravitysiege.gravitysiegegame.game.RiskMode
 import com.gravitysiege.gravitysiegegame.game.Skin
 import com.gravitysiege.gravitysiegegame.game.Skins
 import java.time.LocalDate
+import kotlin.random.Random
 
 class GameStore private constructor(context: Context) {
     private val prefs: SharedPreferences =
@@ -35,6 +36,17 @@ class GameStore private constructor(context: Context) {
         prefs.getStringSet("ownedSkins", null)?.toSet() ?: setOf(Skins.DEFAULT_ID),
     )
         private set
+
+    /** Shown in the header so a player can quote it in a support request. */
+    val playerId: Int = prefs.getInt("playerId", 0).let { saved ->
+        if (saved != 0) {
+            saved
+        } else {
+            val fresh = Random.nextInt(100_000_000, 1_000_000_000)
+            prefs.edit().putInt("playerId", fresh).apply()
+            fresh
+        }
+    }
 
     private var claimedDay by mutableLongStateOf(prefs.getLong("dailyDay", NEVER))
     var streak by mutableIntStateOf(prefs.getInt("dailyStreak", 0))

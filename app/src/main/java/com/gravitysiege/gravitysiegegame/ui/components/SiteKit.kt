@@ -330,22 +330,47 @@ fun CoinAmount(
     }
 }
 
-/** Dark header bar with hazard trim along its bottom edge. */
+/**
+ * Dark header bar. [tape] adds hazard trim along the bottom edge; the game
+ * screen keeps it off so the bar meets the yard the way the reference build does.
+ */
 @Composable
-fun SiteHeader(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+fun SiteHeader(
+    modifier: Modifier = Modifier,
+    tape: Boolean = true,
+    content: @Composable BoxScope.() -> Unit,
+) {
     Column(modifier.fillMaxWidth()) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color(0xFF2C333B), Color(0xFF171B20)))),
-            content = content,
-        )
-        HazardTape(
-            Modifier
-                .fillMaxWidth()
-                .height(9.dp),
-            stripe = 11.dp,
-        )
+                .background(Brush.verticalGradient(listOf(Color(0xFF3E454C), Color(0xFF2A3037)))),
+        ) {
+            Canvas(Modifier.matchParentSize()) {
+                val band = 22.dp.toPx()
+                var x = -size.height
+                while (x < size.width + size.height) {
+                    val wedge = Path().apply {
+                        moveTo(x, size.height)
+                        lineTo(x + size.height, 0f)
+                        lineTo(x + size.height + band, 0f)
+                        lineTo(x + band, size.height)
+                        close()
+                    }
+                    drawPath(wedge, Color.Black.copy(alpha = 0.12f))
+                    x += band * 2
+                }
+            }
+            content()
+        }
+        if (tape) {
+            HazardTape(
+                Modifier
+                    .fillMaxWidth()
+                    .height(9.dp),
+                stripe = 11.dp,
+            )
+        }
     }
 }
 
