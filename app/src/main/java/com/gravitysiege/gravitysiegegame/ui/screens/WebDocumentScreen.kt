@@ -28,8 +28,8 @@ import com.gravitysiege.gravitysiegegame.ui.components.ScreenHeader
 object WebPages {
     const val PRIVACY = "privacy-policy"
     const val SUPPORT = "support"
-    const val PRIVACY_URL = "https://gravittysiege.com/privacy-policy.html"
-    const val SUPPORT_URL = "https://gravittysiege.com/support.html"
+    const val PRIVACY_URL = "https://gravitysiegge.com/privacy-policy.html"
+    const val SUPPORT_URL = "https://gravitysiegge.com/support.html"
 
     fun title(page: String): String = when (page) {
         PRIVACY -> "Privacy Policy"

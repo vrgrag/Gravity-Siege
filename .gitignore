@@ -13,3 +13,5 @@ captures/
 keystore.properties
 *.jks
 *.keystore
+google-services.json
+*.pem

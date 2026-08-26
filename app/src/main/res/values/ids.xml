@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="keel_fold_task" type="id" />
+    <item name="keel_fold_watch" type="id" />
+    <item name="keel_fold_shown" type="id" />
+</resources>
