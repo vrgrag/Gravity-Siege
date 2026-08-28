@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -51,7 +52,7 @@ internal class KeelVault(context: Context) {
     fun readTrail(): KeelTrail = KeelTrail.fromWire(plain.getString(K_TRAIL, null))
 
     fun writeTrail(trail: KeelTrail) {
-        plain.edit().putString(K_TRAIL, trail.wire).apply()
+        plain.edit().putString(K_TRAIL, trail.wire).commit()
     }
 
     fun readCachedLink(): String? = readSealed(K_CACHED_LINK)
@@ -108,11 +109,15 @@ internal class KeelVault(context: Context) {
     }
 
     fun shouldOfferInvite(host: Activity): Boolean {
+        if (isPushAllowed() || isPushBlockedByOs()) return false
         if (osGranted()) {
             markPushAllowed(true)
             return false
         }
-        if (isPushAllowed() || isPushBlockedByOs()) return false
+        if (osRefusedForGood(host)) {
+            markPushBlockedByOs()
+            return false
+        }
         val until = if (plain.contains(K_INVITE_UNTIL)) plain.getLong(K_INVITE_UNTIL, 0L) else 0L
         return nowSeconds() >= until
     }
@@ -121,6 +126,14 @@ internal class KeelVault(context: Context) {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(app, Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
+
+    private fun osRefusedForGood(host: Activity): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            wasOsAsked() &&
+                !host.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            !NotificationManagerCompat.from(host).areNotificationsEnabled()
+        }
 
     private fun nowSeconds(): Long = System.currentTimeMillis() / 1000L
 

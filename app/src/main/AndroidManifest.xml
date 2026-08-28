@@ -97,7 +97,7 @@
             android:value="keel_yard_bell" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_keel_hook" />
+            android:resource="@drawable/ic_keel_flame" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/keel_signal" />

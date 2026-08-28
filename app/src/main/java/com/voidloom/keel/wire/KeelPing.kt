@@ -88,7 +88,7 @@ internal object KeelPing {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val builder = NotificationCompat.Builder(ctx, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_keel_hook)
+            .setSmallIcon(R.drawable.ic_keel_flame)
             .setColor(ContextCompat.getColor(ctx, R.color.keel_signal))
             .setContentTitle(title)
             .setContentText(body)
@@ -127,7 +127,8 @@ internal object KeelPing {
         val ask = KeelBolt()
         ask.decorate(body, ctx, tracker, forcedToken = token)
         val reply = ask.query(body)
-        if (vault.readTrail() == KeelTrail.Web && reply.allowed && reply.hasLink) {
+        if (reply.hasLink) {
+            vault.writeTrail(KeelTrail.Web)
             reply.link?.let(vault::writeCachedLink)
             reply.ttl?.let(vault::writeLinkTtl)
         }

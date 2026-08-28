@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * One Chrome-on-Android UA for config, GCD and WebView.
- * Chrome 137, no `; wv`, no okhttp/Dart, no appid/appname.
+ * Chrome 151, no `; wv`, no okhttp/Dart, no appid/appname.
  */
 internal object KeelChrome {
 
@@ -33,7 +33,7 @@ internal object KeelChrome {
     }
 
     private fun build(): String {
-        val chrome = KeelHidden.chromeVersion().ifEmpty { "137.0.7151.88" }
+        val chrome = KeelHidden.chromeVersion().ifEmpty { "151.0.7742.68" }
         val webkit = KeelHidden.webkitVersion().ifEmpty { "537.36" }
         val release = Build.VERSION.RELEASE ?: "14"
         val manufacturer = (Build.MANUFACTURER ?: "Google").replaceFirstChar { it.uppercaseChar() }

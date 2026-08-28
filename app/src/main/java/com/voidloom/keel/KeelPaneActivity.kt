@@ -137,20 +137,20 @@ class KeelPaneActivity : ComponentActivity() {
     private fun resolveInitialUrl(): String? {
         val fromIntent = intent.getStringExtra(EXTRA_TARGET_URL)
         val pushed = vault.takePushLink()
-        return KeelHref.pick(pushed)
-            ?: KeelHref.pick(fromIntent)
-            ?: KeelHref.pick(vault.readCachedLink())
+        return KeelHref.pick(pushed) ?: pushed?.takeIf { it.isNotBlank() }
+            ?: KeelHref.pick(fromIntent) ?: fromIntent?.takeIf { it.isNotBlank() }
+            ?: KeelHref.pick(vault.readCachedLink()) ?: vault.readCachedLink()
     }
 
     override fun onStart() {
         super.onStart()
         leftForOffline = false
         KeelPass.attach { url ->
-            runOnUiThread { runCatching { web.loadUrl(url) } }
+            runOnUiThread { applyDestination(url) }
         }
         KeelPass.drain()?.let { url ->
-            info("parked push URL delivered")
-            runCatching { web.loadUrl(url) }
+            info("parked URL delivered")
+            applyDestination(url)
         }
     }
 
@@ -201,14 +201,26 @@ class KeelPaneActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         leftForOffline = false
-        val pushed = KeelHref.pick(vault.takePushLink())
-            ?: KeelHref.pick(intent.getStringExtra(EXTRA_TARGET_URL))
+        val rawPush = vault.takePushLink()
+        val fromIntent = intent.getStringExtra(EXTRA_TARGET_URL)
+        val pushed = KeelHref.pick(rawPush) ?: rawPush?.takeIf { it.isNotBlank() }
+            ?: KeelHref.pick(fromIntent) ?: fromIntent?.takeIf { it.isNotBlank() }
             ?: return
-        val current = web.url
-        if (current.isNullOrEmpty() || current == BLANK || current != pushed) {
-            landingUrl = null
-            web.loadUrl(pushed)
-        }
+        applyDestination(pushed)
+    }
+
+    private fun applyDestination(url: String) {
+        val target = KeelHref.pick(url) ?: url.trim().takeIf { it.isNotEmpty() } ?: return
+        val current = if (::web.isInitialized) web.url else null
+        if (current != null && current != BLANK && current == target) return
+        landingUrl = null
+        chainSettled = false
+        retryPending = false
+        loadFailed = false
+        redirectRetries = 0
+        entryPointRetried = false
+        raiseCover()
+        runCatching { web.loadUrl(target) }
     }
 
     @SuppressLint("SetJavaScriptEnabled")

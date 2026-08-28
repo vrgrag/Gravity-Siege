@@ -2,12 +2,10 @@ package com.voidloom.keel
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import com.voidloom.keel.core.KeelImmersion
 import com.voidloom.keel.face.KeelHailView
 import com.voidloom.keel.wire.KeelVault
@@ -20,20 +18,7 @@ class KeelHailActivity : ComponentActivity() {
     private val askOs = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        if (granted) {
-            vault.markPushAllowed(true)
-        } else {
-            vault.armInviteCooldown()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                vault.wasOsAsked() &&
-                !ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                )
-            ) {
-                vault.markPushBlockedByOs()
-            }
-        }
+        if (granted) vault.markPushAllowed(true) else vault.markPushBlockedByOs()
         proceed()
     }
 
@@ -65,19 +50,7 @@ class KeelHailActivity : ComponentActivity() {
             proceed()
             return
         }
-        val alreadyAsked = vault.wasOsAsked()
         vault.markOsAsked()
-        if (alreadyAsked &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
-            !ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS,
-            )
-        ) {
-            vault.markPushBlockedByOs()
-            proceed()
-            return
-        }
         askOs.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
@@ -85,7 +58,7 @@ class KeelHailActivity : ComponentActivity() {
         startActivity(
             Intent(this, KeelPaneActivity::class.java)
                 .putExtra(KeelPaneActivity.EXTRA_TARGET_URL, targetUrl)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
         )
         overridePendingTransition(0, 0)
         finish()

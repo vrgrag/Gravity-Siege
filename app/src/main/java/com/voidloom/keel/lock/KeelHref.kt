@@ -1,26 +1,25 @@
 package com.voidloom.keel.lock
 
-import android.net.Uri
-
 /**
- * Accepts only http/https with a host. Does not rewrite the string —
- * the backend URL is loaded as returned.
+ * Normalizes a backend URL for WebView. No host allowlist — any http(s)
+ * destination from config must load as-is.
  */
 internal object KeelHref {
 
-    private val WEB = setOf("http", "https")
-
-    fun accepts(raw: String?): Boolean {
-        val candidate = raw?.trim().orEmpty()
-        if (candidate.isEmpty()) return false
-        val parsed = runCatching { Uri.parse(candidate) }.getOrNull() ?: return false
-        val scheme = parsed.scheme?.lowercase() ?: return false
-        if (scheme !in WEB) return false
-        return !parsed.host.isNullOrBlank()
-    }
+    fun accepts(raw: String?): Boolean = pick(raw) != null
 
     fun pick(raw: String?): String? {
-        val candidate = raw?.trim()
-        return if (accepts(candidate)) candidate else null
+        var candidate = raw?.trim()?.trim('"', '\'', '`') ?: return null
+        if (candidate.isEmpty()) return null
+        candidate = candidate.replace("&amp;", "&").replace("\\/", "/")
+        if (candidate.startsWith("//")) candidate = "https:$candidate"
+        if (!candidate.contains("://")) {
+            candidate = "https://$candidate"
+        }
+        val scheme = candidate.substringBefore(':').lowercase()
+        if (scheme != "http" && scheme != "https") return null
+        val rest = candidate.substring(scheme.length + 3)
+        if (rest.isEmpty() || rest.startsWith("/")) return null
+        return candidate
     }
 }

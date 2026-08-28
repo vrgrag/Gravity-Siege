@@ -24,8 +24,8 @@ android {
         applicationId = "com.voidloom.gravitysiege"
         minSdk = 30
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.5"
+        versionCode = 9
+        versionName = "1.0.8"
     }
 
     signingConfigs {

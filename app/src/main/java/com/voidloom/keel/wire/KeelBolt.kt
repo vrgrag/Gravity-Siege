@@ -79,14 +79,11 @@ internal class KeelBolt {
         }
         if (payload.isBlank()) return KeelVerdict.locked("empty body")
         val parsed = KeelVerdict.parse(payload)
-        if (!parsed.allowed || !parsed.hasLink) {
-            return KeelVerdict.locked(parsed.note ?: "ok=false")
+        val target = KeelHref.pick(parsed.link) ?: parsed.link?.trim()?.takeIf { it.isNotEmpty() }
+        if (!target.isNullOrEmpty()) {
+            return parsed.copy(allowed = true, link = target)
         }
-        if (!KeelHref.accepts(parsed.link)) {
-            debug { "url rejected by href guard" }
-            return KeelVerdict.mute("destination rejected")
-        }
-        return parsed
+        return KeelVerdict.locked(parsed.note ?: "no url in config")
     }
 
     private fun localeTag(): String {

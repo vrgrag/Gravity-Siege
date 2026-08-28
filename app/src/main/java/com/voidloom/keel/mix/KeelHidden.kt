@@ -19,7 +19,7 @@ internal object KeelHidden {
     )
 
     val CHROME_VERSION_BYTES = intArrayOf(
-        104, 81, 51, 201, 64, 24, 239, 208, 137, 253, 229, 32,
+        104, 87, 53, 201, 64, 24, 239, 214, 136, 254, 229, 46,
         196,
     )
 

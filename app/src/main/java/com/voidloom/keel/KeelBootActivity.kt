@@ -64,7 +64,12 @@ class KeelBootActivity : ComponentActivity() {
 
         loadView = KeelBootView(this)
         setContentView(loadView)
-        lifecycleScope.launch { route(trail) }
+        lifecycleScope.launch {
+            runCatching { route(trail) }.onFailure { err ->
+                info("route failed: ${err.message}")
+                recoverFromRoute(trail)
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -82,14 +87,11 @@ class KeelBootActivity : ComponentActivity() {
     }
 
     private suspend fun route(trail: KeelTrail) {
-        if (trail == KeelTrail.Native) {
-            openGame()
-            return
-        }
         loadView.progress = 0.16f
         if (!awaitConnection(trail)) return
         when (trail) {
             KeelTrail.Web -> resolveReturning()
+            KeelTrail.Native -> resolveNative()
             else -> resolveFirstLaunch()
         }
     }
@@ -120,7 +122,7 @@ class KeelBootActivity : ComponentActivity() {
         loadView.progress = 0.42f
         val reply = askBackend(firstLaunch = true)
         loadView.progress = 0.96f
-        if (reply.allowed && reply.hasLink) {
+        if (reply.hasLink) {
             commitWeb(reply)
             loadView.progress = 1f
             openShell(reply.link)
@@ -139,7 +141,8 @@ class KeelBootActivity : ComponentActivity() {
     }
 
     private suspend fun resolveReturning() {
-        val pushed = KeelHref.pick(vault.takePushLink())
+        val rawPush = vault.takePushLink()
+        val pushed = KeelHref.pick(rawPush) ?: rawPush?.takeIf { it.isNotBlank() }
         if (pushed != null) {
             openShell(pushed)
             return
@@ -151,7 +154,7 @@ class KeelBootActivity : ComponentActivity() {
         loadView.progress = 0.96f
         val cached = vault.readCachedLink()
         when {
-            reply.allowed && reply.hasLink -> {
+            reply.hasLink -> {
                 commitWeb(reply)
                 loadView.progress = 1f
                 openShell(reply.link)
@@ -165,6 +168,21 @@ class KeelBootActivity : ComponentActivity() {
                 finish()
             }
         }
+    }
+
+    private suspend fun resolveNative() {
+        tracker.ignite(this)
+        loadView.progress = 0.52f
+        val reply = askBackend(firstLaunch = false)
+        loadView.progress = 0.96f
+        if (reply.hasLink) {
+            commitWeb(reply)
+            loadView.progress = 1f
+            openShell(reply.link)
+            return
+        }
+        loadView.progress = 1f
+        openGame()
     }
 
     private suspend fun askBackend(firstLaunch: Boolean): KeelVerdict {
@@ -181,27 +199,51 @@ class KeelBootActivity : ComponentActivity() {
         vault.writeLinkTtl(reply.ttl ?: 0L)
     }
 
+    private fun recoverFromRoute(trail: KeelTrail) {
+        when (trail) {
+            KeelTrail.Web -> openShell(vault.readCachedLink())
+            else -> openGame()
+        }
+    }
+
     private fun openShell(url: String?) {
-        val target = KeelHref.pick(url)
-        if (target == null) {
+        val target = KeelHref.pick(url) ?: url?.trim()?.takeIf { it.isNotEmpty() }
+        if (target.isNullOrEmpty()) {
+            if (vault.readTrail() == KeelTrail.Web) {
+                val fallback = KeelHref.pick(vault.readCachedLink()) ?: vault.readCachedLink()
+                if (!fallback.isNullOrEmpty()) {
+                    startPane(fallback)
+                    overridePendingTransition(0, 0)
+                    finish()
+                    return
+                }
+            }
             openGame()
+            return
+        }
+        if (KeelPass.offer(target)) {
+            finish()
             return
         }
         if (vault.shouldOfferInvite(this)) {
             startActivity(
                 Intent(this, KeelHailActivity::class.java)
                     .putExtra(KeelHailActivity.EXTRA_TARGET_URL, target)
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             )
         } else {
-            startActivity(
-                Intent(this, KeelPaneActivity::class.java)
-                    .putExtra(KeelPaneActivity.EXTRA_TARGET_URL, target)
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            )
+            startPane(target)
         }
         overridePendingTransition(0, 0)
         finish()
+    }
+
+    private fun startPane(target: String) {
+        startActivity(
+            Intent(this, KeelPaneActivity::class.java)
+                .putExtra(KeelPaneActivity.EXTRA_TARGET_URL, target)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        )
     }
 
     private fun openGame() {
